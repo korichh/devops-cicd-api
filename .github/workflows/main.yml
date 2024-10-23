@@ -16,42 +16,42 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build and tag image
-        run: |
-          docker build -t "node" ./
-          docker tag "node" "${{ secrets.ECR_REPOSITORY_URL }}/node:${{ env.NODE_TAG }}"
+      # - name: Build and tag image
+      #   run: |
+      #     docker build -t "node" ./
+      #     docker tag "node" "${{ secrets.ECR_REPOSITORY_URL }}/node:${{ env.NODE_TAG }}"
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
       
-      - name: Push image to ECR
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }}
-          docker push "${{ secrets.ECR_REPOSITORY_URL }}/node:${{ env.NODE_TAG }}"
+      # - name: Push image to ECR
+      #   run: |
+      #     aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }}
+      #     docker push "${{ secrets.ECR_REPOSITORY_URL }}/node:${{ env.NODE_TAG }}"
 
-      - name: SSH into EC2 instance and deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          script: |
-            echo "Exporting necessary secrets..."
-            export ECR_REPOSITORY_URL=${{ secrets.ECR_REPOSITORY_URL }}
-            export NODE_TAG=${{ env.NODE_TAG }}
+      # - name: SSH into EC2 instance and deploy
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.EC2_HOST }}
+      #     username: ${{ secrets.EC2_USER }}
+      #     key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+      #     script: |
+      #       echo "Exporting necessary secrets..."
+      #       export ECR_REPOSITORY_URL=${{ secrets.ECR_REPOSITORY_URL }}
+      #       export NODE_TAG=${{ env.NODE_TAG }}
 
-            echo "Stopping docker compose..."
-            docker compose down
+      #       echo "Stopping docker compose..."
+      #       docker compose down
     
-            echo "Logging in to ECR..."
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }}
+      #       echo "Logging in to ECR..."
+      #       aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }}
 
-            echo "Running docker compose..."
-            docker compose --env-file ./.env up --build -d
+      #       echo "Running docker compose..."
+      #       docker compose --env-file ./.env up --build -d
 
-            echo "Removing unused images..."
-            docker image prune -fa
+      #       echo "Removing unused images..."
+      #       docker image prune -fa
